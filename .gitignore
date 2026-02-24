@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+**/node_modules/
+
+# environment variables
+.env
+**/.env
+!**/.env.example
+
+# logs
+*.log
+npm-debug.log*
+
+# os files
+.DS_Store
+Thumbs.db
+
+# ide
+.vscode/
+.idea/
+
+# build outputs
+dist/
+build/
+frontend/dist/
+
+# uploads (user-uploaded files, not tracked)
+backend/uploads/payment-proofs/*
+!backend/uploads/payment-proofs/.gitkeep
