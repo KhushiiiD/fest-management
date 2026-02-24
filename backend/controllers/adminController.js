@@ -42,24 +42,37 @@ const getDashboard = async (req, res) => {
   }
 };
 
+// generate login email from organizer name
+const generateOrganizerEmail = (organizerName) => {
+  const slug = organizerName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, '.');
+  return `${slug}@organizer.fest.com`;
+};
+
 // create new organizer account (admin creates, no self-registration)
 const createOrganizer = async (req, res) => {
   try {
-    const { organizerName, category, description, contactEmail } = req.body;
+    const { organizerName, category, description, contactEmail, contactNumber } = req.body;
 
-    if (!organizerName || !contactEmail) {
+    if (!organizerName) {
       return res.status(400).json({
         success: false,
-        message: 'organizer name and contact email are required'
+        message: 'organizer name is required'
       });
     }
 
+    // auto-generate login email from organizer name
+    const generatedEmail = generateOrganizerEmail(organizerName);
+
     // check if email already exists
-    const existingUser = await User.findOne({ email: contactEmail.toLowerCase() });
+    const existingUser = await User.findOne({ email: generatedEmail });
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'email already in use'
+        message: `an organizer with this name already exists (${generatedEmail})`
       });
     }
 
@@ -68,19 +81,20 @@ const createOrganizer = async (req, res) => {
 
     // create organizer account
     const organizer = await User.create({
-      email: contactEmail.toLowerCase(),
+      email: generatedEmail,
       password,
       role: 'organizer',
       organizerName,
       category: category || '',
       description: description || '',
-      contactEmail: contactEmail.toLowerCase(),
+      contactEmail: contactEmail ? contactEmail.toLowerCase() : generatedEmail,
+      contactNumber: contactNumber || '',
       isActive: true
     });
 
     // try to send credentials email
     try {
-      await sendOrganizerCredentials(contactEmail, organizerName, password);
+      await sendOrganizerCredentials(generatedEmail, organizerName, password);
     } catch (emailError) {
       console.error('error sending credentials email:', emailError);
     }

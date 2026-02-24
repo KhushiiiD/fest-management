@@ -8,7 +8,6 @@ const ManageOrganizers = () => {
   const [creating, setCreating] = useState(false);
   const [message, setMessage] = useState(null);
   const [form, setForm] = useState({
-    email: '',
     organizerName: '',
     category: 'technical',
     description: '',
@@ -35,8 +34,9 @@ const ManageOrganizers = () => {
     setMessage(null);
     try {
       const res = await adminAPI.createOrganizer(form);
-      setMessage({ type: 'success', text: `Organizer created! Password: ${res.data.organizer?.temporaryPassword || 'Sent via email'}` });
-      setForm({ email: '', organizerName: '', category: 'technical', description: '', contactEmail: '', contactNumber: '' });
+      const { email, temporaryPassword } = res.data.organizer;
+      setMessage({ type: 'success', text: `Organizer created!\n📧 Login Email: ${email}\n🔑 Password: ${temporaryPassword}` });
+      setForm({ organizerName: '', category: 'technical', description: '', contactEmail: '', contactNumber: '' });
       setShowForm(false);
       fetchOrganizers();
     } catch (err) {
@@ -87,7 +87,7 @@ const ManageOrganizers = () => {
       </div>
 
       {message && (
-        <div className={`alert alert-${message.type === 'success' ? 'success' : 'danger'}`}>
+        <div className={`alert alert-${message.type === 'success' ? 'success' : 'danger'}`} style={{ whiteSpace: 'pre-line', fontFamily: 'monospace' }}>
           {message.text}
         </div>
       )}
@@ -98,14 +98,14 @@ const ManageOrganizers = () => {
           <h3>Create New Organizer</h3>
           <div className="form-row">
             <div className="form-group">
-              <label>Login Email *</label>
-              <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                className="form-input" required />
-            </div>
-            <div className="form-group">
               <label>Organization/Club Name *</label>
               <input type="text" value={form.organizerName} onChange={e => setForm({ ...form, organizerName: e.target.value })}
                 className="form-input" required />
+              {form.organizerName && (
+                <small style={{ color: '#666' }}>
+                  Login email will be: <strong>{form.organizerName.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '.')}@organizer.fest.com</strong>
+                </small>
+              )}
             </div>
           </div>
           <div className="form-row">
