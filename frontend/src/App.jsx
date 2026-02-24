@@ -15,6 +15,7 @@ import MyRegistrations from './pages/participant/MyRegistrations';
 import MyTeams from './pages/participant/MyTeams';
 import ParticipantProfile from './pages/participant/Profile';
 import Clubs from './pages/participant/Clubs';
+import ClubDetails from './pages/participant/ClubDetails';
 import Forum from './pages/participant/Forum';
 import Onboarding from './pages/participant/Onboarding';
 
@@ -71,6 +72,9 @@ function App() {
               } />
               <Route path="/participant/clubs" element={
                 <ProtectedRoute roles={['participant']}><Clubs /></ProtectedRoute>
+              } />
+              <Route path="/participant/clubs/:clubId" element={
+                <ProtectedRoute roles={['participant']}><ClubDetails /></ProtectedRoute>
               } />
               <Route path="/participant/forum/:eventId" element={
                 <ProtectedRoute roles={['participant']}><Forum /></ProtectedRoute>

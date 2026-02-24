@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { participantAPI } from '../../services/api';
 
 const Clubs = () => {
+  const navigate = useNavigate();
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -57,16 +59,21 @@ const Clubs = () => {
       ) : (
         <div className="clubs-grid">
           {clubs.map(club => (
-            <div key={club._id} className="club-card">
+            <div key={club._id} className="club-card" style={{ cursor: 'pointer' }}
+              onClick={() => navigate(`/participant/clubs/${club._id}`)}>
               <h3>{club.organizerName}</h3>
               <span className="badge">{club.category}</span>
               {club.description && <p>{club.description}</p>}
               <p className="text-muted">{club.eventCount} events</p>
               {club.contactEmail && <p>📧 {club.contactEmail}</p>}
-              <button onClick={() => club.isFollowing ? handleUnfollow(club._id) : handleFollow(club._id)}
-                className={`btn btn-sm ${club.isFollowing ? 'btn-danger' : 'btn-primary'}`}>
-                {club.isFollowing ? 'Unfollow' : 'Follow'}
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <button onClick={(e) => { e.stopPropagation(); club.isFollowing ? handleUnfollow(club._id) : handleFollow(club._id); }}
+                  className={`btn btn-sm ${club.isFollowing ? 'btn-danger' : 'btn-primary'}`}>
+                  {club.isFollowing ? 'Unfollow' : 'Follow'}
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); navigate(`/participant/clubs/${club._id}`); }}
+                  className="btn btn-sm btn-secondary">View Details</button>
+              </div>
             </div>
           ))}
         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { teamAPI } from '../../services/api';
+import { teamAPI, eventAPI } from '../../services/api';
 
 const MyTeams = () => {
   const [activeTeams, setActiveTeams] = useState([]);
@@ -9,6 +9,11 @@ const MyTeams = () => {
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createData, setCreateData] = useState({ teamName: '', eventId: '' });
+  const [hackathonEvents, setHackathonEvents] = useState([]);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
 
   const fetchTeams = async () => {
     try {
@@ -23,6 +28,42 @@ const MyTeams = () => {
   };
 
   useEffect(() => { fetchTeams(); }, []);
+
+  useEffect(() => {
+    const fetchHackathons = async () => {
+      try {
+        const res = await eventAPI.browse({ eventType: 'hackathon' });
+        const openEvents = (res.data.events || []).filter(e =>
+          e.status === 'published' || e.status === 'ongoing'
+        );
+        setHackathonEvents(openEvents);
+      } catch (err) {
+        console.error('fetch hackathon events error:', err);
+      }
+    };
+    fetchHackathons();
+  }, []);
+
+  const handleCreateTeam = async (e) => {
+    e.preventDefault();
+    if (!createData.eventId || !createData.teamName.trim()) {
+      setCreateError('Please fill in all fields');
+      return;
+    }
+    setCreating(true);
+    setCreateError('');
+    try {
+      const res = await teamAPI.createTeam(createData);
+      setSuccess(`Team "${res.data.team.teamName}" created! Invite code: ${res.data.team.inviteCode}`);
+      setShowCreateForm(false);
+      setCreateData({ teamName: '', eventId: '' });
+      fetchTeams();
+    } catch (err) {
+      setCreateError(err.response?.data?.message || 'Failed to create team');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const handleJoinByCode = async (e) => {
     e.preventDefault();
@@ -62,7 +103,44 @@ const MyTeams = () => {
 
   return (
     <div className="page-container">
-      <h2>My Teams</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+        <h2 style={{ margin: 0 }}>My Teams</h2>
+        <button className="btn btn-primary" onClick={() => { setShowCreateForm(!showCreateForm); setCreateError(''); }}>
+          {showCreateForm ? 'Cancel' : '+ Create Team'}
+        </button>
+      </div>
+
+      {/* Create Team Form */}
+      {showCreateForm && (
+        <div className="card" style={{ marginBottom: '1.5rem' }}>
+          <h3>Create New Team</h3>
+          {hackathonEvents.length === 0 ? (
+            <p className="text-muted">No open hackathon events available to create a team for.</p>
+          ) : (
+            <form onSubmit={handleCreateTeam}>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label>Team Name *</label>
+                <input type="text" placeholder="e.g. Code Warriors" value={createData.teamName}
+                  onChange={e => setCreateData({ ...createData, teamName: e.target.value })} required />
+              </div>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label>Hackathon Event *</label>
+                <select value={createData.eventId}
+                  onChange={e => setCreateData({ ...createData, eventId: e.target.value })} required>
+                  <option value="">Select an event...</option>
+                  {hackathonEvents.map(ev => (
+                    <option key={ev._id} value={ev._id}>{ev.eventName}</option>
+                  ))}
+                </select>
+              </div>
+              {createError && <div className="alert alert-error">{createError}</div>}
+              <button type="submit" className="btn btn-primary" disabled={creating}>
+                {creating ? 'Creating...' : 'Create Team'}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
 
       {/* Join by code */}
       <div className="card">

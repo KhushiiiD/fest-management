@@ -28,8 +28,9 @@ const Forum = () => {
     };
     fetchMessages();
 
-    // connect socket
-    socketRef.current = io(window.location.origin.replace(':3000', ':5000'));
+    // connect socket — use backend URL from env (production) or replace port (local dev)
+    const socketUrl = import.meta.env.VITE_API_URL || window.location.origin.replace(':3000', ':5000');
+    socketRef.current = io(socketUrl);
     socketRef.current.emit('join-forum', eventId);
 
     socketRef.current.on('newMessage', (msg) => {
