@@ -17,13 +17,15 @@ const app = express();
 const server = http.createServer(app);
 
 // initialize socket.io for real-time features
-const allowedOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map(u => u.trim())
-  : ['http://localhost:3000'];
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const allowAll = FRONTEND_URL === '*';
+const allowedOrigins = allowAll
+  ? []
+  : FRONTEND_URL.split(',').map(u => u.trim());
 
 const io = socketIO(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: allowAll ? '*' : allowedOrigins,
     methods: ['GET', 'POST']
   }
 });
@@ -35,7 +37,16 @@ app.set('io', io);
 // cors - allows frontend to communicate with backend
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (allowAll || !origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('not allowed by cors'));
+  },
+  credentials: true
+}));
+
+// handle preflight requests explicitly
+app.options('*', cors({
+  origin: (origin, callback) => {
+    if (allowAll || !origin || allowedOrigins.includes(origin)) return callback(null, true);
     callback(new Error('not allowed by cors'));
   },
   credentials: true
