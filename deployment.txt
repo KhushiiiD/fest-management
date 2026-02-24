@@ -1,0 +1,21 @@
+Frontend: https://fest-management-navy.vercel.app
+Backend API: https://fest-management-api-d.onrender.com
+
+Admin Login:
+  Email: admin@fest.com
+  Password: AdminPassword123
+
+Deployment Stack:
+  Frontend — Vercel (React + Vite, auto-deployed from GitHub)
+  Backend  — Render (Node.js web service, auto-deployed from GitHub)
+  Database — MongoDB Atlas (cluster: fest-management.x8thhs6.mongodb.net)
+
+Notes:
+  - The Render backend is on the free tier and may take 30-60 seconds to
+    wake up on first request after a period of inactivity.
+  - All participant accounts require an @iiit.ac.in / @students.iiit.ac.in /
+    @research.iiit.ac.in email address.
+  - Organizer accounts are created by the admin; the login email is
+    auto-generated as <name>@organizer.fest.com.
+  - Payment proof uploads and email notifications may be limited in the
+    production environment (file storage is ephemeral on Render free tier).
