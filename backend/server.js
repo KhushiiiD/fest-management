@@ -17,9 +17,13 @@ const app = express();
 const server = http.createServer(app);
 
 // initialize socket.io for real-time features
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map(u => u.trim())
+  : ['http://localhost:3000'];
+
 const io = socketIO(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     methods: ['GET', 'POST']
   }
 });
@@ -30,7 +34,10 @@ app.set('io', io);
 // middleware setup
 // cors - allows frontend to communicate with backend
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('not allowed by cors'));
+  },
   credentials: true
 }));
 
