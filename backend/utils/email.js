@@ -3,6 +3,19 @@
 
 const nodemailer = require('nodemailer');
 
+// check if email is properly configured
+const isEmailConfigured = () => {
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASSWORD;
+  return (
+    user &&
+    pass &&
+    user !== 'your_email@gmail.com' &&
+    pass !== 'your_email_app_password' &&
+    user.includes('@')
+  );
+};
+
 // create email transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
@@ -18,6 +31,7 @@ const createTransporter = () => {
 
 // send registration confirmation email
 const sendRegistrationEmail = async (userEmail, userName, ticketId, eventName, qrCodeData) => {
+  if (!isEmailConfigured()) return;
   try {
     const transporter = createTransporter();
     
@@ -46,6 +60,7 @@ const sendRegistrationEmail = async (userEmail, userName, ticketId, eventName, q
 
 // send merchandise purchase confirmation email
 const sendMerchandiseEmail = async (userEmail, userName, ticketId, itemName, details) => {
+  if (!isEmailConfigured()) return;
   try {
     const transporter = createTransporter();
     
@@ -75,6 +90,7 @@ const sendMerchandiseEmail = async (userEmail, userName, ticketId, itemName, det
 
 // send organizer credentials email
 const sendOrganizerCredentials = async (email, organizerName, password) => {
+  if (!isEmailConfigured()) return;
   try {
     const transporter = createTransporter();
     
@@ -104,6 +120,7 @@ const sendOrganizerCredentials = async (email, organizerName, password) => {
 
 // send password reset email
 const sendPasswordResetEmail = async (email, organizerName, newPassword) => {
+  if (!isEmailConfigured()) return;
   try {
     const transporter = createTransporter();
     
@@ -132,6 +149,7 @@ const sendPasswordResetEmail = async (email, organizerName, newPassword) => {
 
 // send team invitation email
 const sendTeamInviteEmail = async (userEmail, userName, teamName, eventName, inviteCode) => {
+  if (!isEmailConfigured()) return;
   try {
     const transporter = createTransporter();
     
