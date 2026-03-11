@@ -84,7 +84,7 @@ const postMessage = async (req, res) => {
       event: eventId,
       author: req.user._id,
       content: content.trim(),
-      messageType: messageType || 'text',
+      messageType: messageType || 'message',
       parentMessage: parentMessage || null
     });
 

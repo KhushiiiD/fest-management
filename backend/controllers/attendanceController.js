@@ -51,18 +51,18 @@ const scanQRCode = async (req, res) => {
     }
 
     // check if already marked
-    if (registration.attendanceMarked) {
+    if (registration.attended) {
       return res.status(400).json({
         success: false,
         message: 'attendance already marked',
         participant: registration.participant,
-        attendanceTime: registration.attendanceTime
+        attendanceTime: registration.attendanceMarkedAt
       });
     }
 
     // mark attendance
-    registration.attendanceMarked = true;
-    registration.attendanceTime = new Date();
+    registration.attended = true;
+    registration.attendanceMarkedAt = new Date();
     registration.attendanceMarkedBy = req.user._id;
     await registration.save();
 
@@ -71,7 +71,7 @@ const scanQRCode = async (req, res) => {
       message: 'attendance marked successfully',
       participant: registration.participant,
       ticketId: registration.ticketId,
-      attendanceTime: registration.attendanceTime
+      attendanceTime: registration.attendanceMarkedAt
     });
   } catch (error) {
     console.error('scan qr code error:', error);
@@ -106,16 +106,16 @@ const manualAttendance = async (req, res) => {
       return res.status(404).json({ success: false, message: 'participant is not registered for this event' });
     }
 
-    if (registration.attendanceMarked) {
+    if (registration.attended) {
       return res.status(400).json({
         success: false,
         message: 'attendance already marked',
-        attendanceTime: registration.attendanceTime
+        attendanceTime: registration.attendanceMarkedAt
       });
     }
 
-    registration.attendanceMarked = true;
-    registration.attendanceTime = new Date();
+    registration.attended = true;
+    registration.attendanceMarkedAt = new Date();
     registration.attendanceMarkedBy = req.user._id;
     await registration.save();
 
@@ -127,7 +127,7 @@ const manualAttendance = async (req, res) => {
         lastName: participant.lastName,
         email: participant.email
       },
-      attendanceTime: registration.attendanceTime
+      attendanceTime: registration.attendanceMarkedAt
     });
   } catch (error) {
     console.error('manual attendance error:', error);
@@ -150,8 +150,8 @@ const getAttendanceDashboard = async (req, res) => {
       status: { $ne: 'cancelled' }
     }).populate('participant', 'firstName lastName email participantType collegeName');
 
-    const attended = registrations.filter(r => r.attendanceMarked);
-    const notAttended = registrations.filter(r => !r.attendanceMarked);
+    const attended = registrations.filter(r => r.attended);
+    const notAttended = registrations.filter(r => !r.attended);
 
     res.status(200).json({
       success: true,
@@ -197,7 +197,7 @@ const exportAttendanceCSV = async (req, res) => {
 
     for (const reg of registrations) {
       const p = reg.participant;
-      csv += `${reg.ticketId},${p.firstName},${p.lastName},${p.email},${p.participantType},${p.collegeName || 'N/A'},${p.contactNumber || 'N/A'},${reg.attendanceMarked ? 'Present' : 'Absent'},${reg.attendanceTime ? new Date(reg.attendanceTime).toISOString() : 'N/A'}\n`;
+      csv += `${reg.ticketId},${p.firstName},${p.lastName},${p.email},${p.participantType},${p.collegeName || 'N/A'},${p.contactNumber || 'N/A'},${reg.attended ? 'Present' : 'Absent'},${reg.attendanceMarkedAt ? new Date(reg.attendanceMarkedAt).toISOString() : 'N/A'}\n`;
     }
 
     res.setHeader('Content-Type', 'text/csv');
